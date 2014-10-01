@@ -1,5 +1,20 @@
 import Foundation
 
+func underscoreToCamelCase(string: String) -> String {
+    var items: [String] = string.componentsSeparatedByString("_")
+    var camelCase = ""
+    var isFirst = true
+    for item: String in items {
+        if isFirst == true {
+            isFirst = false
+            camelCase += item
+        } else {
+            camelCase += item.capitalizedString
+        }
+    }
+    return camelCase
+}
+
 extension NSObject {
     class func fromJson(jsonInfo: NSDictionary) -> Self {
         var object = self()
@@ -15,6 +30,11 @@ extension NSObject {
             
             if (respondsToSelector(NSSelectorFromString(keyName))) {
                 setValue(value, forKey: keyName)
+            } else {
+                let camelCaseName = underscoreToCamelCase(keyName)
+                if (respondsToSelector(NSSelectorFromString(camelCaseName))) {
+                    setValue(value, forKey: camelCaseName)
+                }
             }
         }
     }
@@ -45,5 +65,4 @@ extension NSObject {
         
         return json
     }
-    
 }
