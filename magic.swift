@@ -1,20 +1,5 @@
 import Foundation
 
-func underscoreToCamelCase(string: String) -> String {
-    var items: [String] = string.componentsSeparatedByString("_")
-    var camelCase = ""
-    var isFirst = true
-    for item: String in items {
-        if isFirst == true {
-            isFirst = false
-            camelCase += item
-        } else {
-            camelCase += item.capitalizedString
-        }
-    }
-    return camelCase
-}
-
 extension NSObject {
     class func fromJson(jsonInfo: NSDictionary) -> Self {
         var object = self()
@@ -30,11 +15,6 @@ extension NSObject {
             
             if (respondsToSelector(NSSelectorFromString(keyName))) {
                 setValue(value, forKey: keyName)
-            } else {
-                let camelCaseName = underscoreToCamelCase(keyName)
-                if (respondsToSelector(NSSelectorFromString(camelCaseName))) {
-                    setValue(value, forKey: camelCaseName)
-                }
             }
         }
     }
@@ -45,8 +25,7 @@ extension NSObject {
         var properties = class_copyPropertyList(classForCoder, &count)
         for var i = 0; i < Int(count); ++i {
             let property: objc_property_t = properties[i]
-            let name: String =
-            NSString.stringWithCString(property_getName(property), encoding: NSUTF8StringEncoding)
+            let name: String = String.fromCString(property_getName(property))!
             names.append(name)
         }
         free(properties)
@@ -54,7 +33,7 @@ extension NSObject {
     }
     
     func asJson() -> NSDictionary {
-        var json = NSMutableDictionary.dictionary()
+        var json:Dictionary<String, AnyObject> = [:]
         
         for name in propertyNames() {
             if let value: AnyObject = valueForKey(name) {
@@ -65,4 +44,39 @@ extension NSObject {
         
         return json
     }
+    
 }
+
+class User: NSObject {
+    var name: String = ""
+    var age: Int = 0
+    var info: NSDictionary!
+}
+
+var user: User = User.fromJson([
+        "name": "Andrei Puni",
+        "age": 23,
+        "info": [
+            "likes": "hacking"
+        ]
+    ]
+)
+
+println(user.name)
+// "Andrei Puni"
+
+println(user.age)
+// 23
+println(user.info)
+// { 
+//   likes = hacking;
+// }
+
+println(user.asJson())
+// {
+//   age = 23;
+//   info = {
+//     likes = hacking;
+//   };
+//   name = Andrei;
+// }
